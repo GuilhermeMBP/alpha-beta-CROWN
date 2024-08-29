@@ -87,6 +87,79 @@ class BasicBlock(nn.Module):
         # print("residual relu:", out.shape, out[0].view(-1).shape)
         return out
 
+class OnnxableSB3Policy(nn.Module):
+    def __init__(self, neurons=32, num_layers=2):
+        super().__init__()
+        self.action_net = nn.Linear(in_features=neurons, out_features=1, bias=True)
+        
+        layers = []
+        layers.append(nn.Linear(in_features=12, out_features=neurons, bias=True))
+        layers.append(nn.ReLU())
+        for i in range(num_layers-1):
+            layers.append(nn.Linear(in_features=neurons, out_features=neurons, bias=True))
+            layers.append(nn.ReLU())
+        self.policy_net = nn.Sequential(*layers)
+
+    def forward(self, observation: torch.Tensor):
+        a = self.policy_net(observation)
+        a = self.action_net(a)
+        #a.clamp_(-1.0, 1.0)  # Clip action values to the range [-1, 1]
+        return a
+
+def pposb3():
+    return OnnxableSB3Policy()
+
+def pposb3_256():
+    return OnnxableSB3Policy(256)
+
+class SB3_DRONE_2D(nn.Module):
+    def __init__(self, neurons=32, num_layers=2, inputs=12, outputs=2):
+        super().__init__()
+        self.action_net = nn.Linear(in_features=neurons, out_features=outputs, bias=True)
+        
+        layers = []
+        layers.append(nn.Linear(in_features=inputs, out_features=neurons, bias=True))
+        layers.append(nn.ReLU())
+        for i in range(num_layers-1):
+            layers.append(nn.Linear(in_features=neurons, out_features=neurons, bias=True))
+            layers.append(nn.ReLU())
+        self.policy_net = nn.Sequential(*layers)
+
+    def forward(self, observation: torch.Tensor):
+        a = self.policy_net(observation)
+        a = self.action_net(a)
+        #a.clamp_(-1.0, 1.0)  # Clip action values to the range [-1, 1]
+        return a
+
+def pposb3_3_256():
+    return SB3_DRONE_2D(256, 3)
+
+def ppo_pos_2d_3_256():
+    return SB3_DRONE_2D(256, 3, 3)
+
+class DRONE_SAC_DISCRETE2D(nn.Module):
+    def __init__(self, neurons=32, num_layers=2, inputs=12, outputs=7):
+        super().__init__()
+        mu = nn.Linear(in_features=neurons, out_features=outputs, bias=True)
+        
+        layers = []
+        layers.append(nn.Linear(in_features=inputs, out_features=neurons, bias=True))
+        layers.append(nn.ReLU())
+        for i in range(num_layers-1):
+            layers.append(nn.Linear(in_features=neurons, out_features=neurons, bias=True))
+            layers.append(nn.ReLU())
+        latent_pi = nn.Sequential(*layers)
+        self.actor = nn.Sequential(latent_pi, mu, nn.Tanh())
+
+    def forward(self, observation: torch.Tensor):
+        a = self.actor(observation)
+        return a
+
+def sac_discrete2d_2_32():
+    return DRONE_SAC_DISCRETE2D(32, 2)
+
+def sacsb3():
+    return DRONE_SAC_DISCRETE2D(32, 2, 12, 1)
 
 class ResNet(nn.Module):
     def __init__(self, block, num_blocks, num_classes=10, in_planes=64):
@@ -1706,3 +1779,5 @@ class Step_carvana(nn.Module):
         x = x.sum(1, keepdim=True)
 
         return x
+    
+
