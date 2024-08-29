@@ -219,7 +219,7 @@ class RandomNeuronBranching(NeuronBranchingHeuristic):
         scores = {}
         for idx, lb in self.layer_iterator(domains['lower_bounds']):
             # Random score 0 - 1.
-            scores[idx] = (domains['mask'][self.net.split_indices[idx]]
+            scores[idx] = (domains['mask'][idx]
                            * torch.rand_like(lb)).flatten(1)
         return scores
 
