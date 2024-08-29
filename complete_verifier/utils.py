@@ -179,6 +179,9 @@ class Logger:
 
             for k, v in self.verification_summary.items():
                 print(f'{k} (total {len(v)}), index:', v)
+                # Write to file
+                with open('/app/certified.txt', 'a') as file:  # 'a' mode to append to the file
+                    file.write(f'{k} (total {len(v)}), index: {v}\n')
 
             if arguments.Config['general']['save_output']:
                 # save output for test
