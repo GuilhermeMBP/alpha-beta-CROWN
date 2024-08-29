@@ -95,7 +95,8 @@ def save_cex(adv_example, adv_output, x, vnnlib, res_path, data_max, data_min):
 def default_adv_saver(adv_example, adv_output, res_path):
     x = adv_example.view(-1).detach().cpu()
     adv_output = adv_output.detach().cpu().numpy()
-    with open(res_path, 'w+') as f:
+    file_path = res_path + str(arguments.Globals['example_idx']) + ".txt"
+    with open(file_path, 'w+') as f:
         # f.write("; Counterexample with prediction: {}\n".format(attack_label))
         # f.write("\n")
 
@@ -241,6 +242,7 @@ def attack(model_ori, x, vnnlib, verified_status, verified_success,
     else:
         raise NotImplementedError('Auto-attack interfact has not been implemented yet.')
         # attack_ret, attack_images, attack_margins = auto_attack(model_ori, x, data_min=data_min, data_max=data_max, vnnlib=vnnlib)
+
 
     if attack_ret:
         # Attack success.
